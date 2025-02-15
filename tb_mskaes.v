@@ -29,6 +29,7 @@ wire [128*d-1:0] sh_plaintext;
 wire [128*d-1:0] sh_key;
 wire [128*d-1:0] sh_ciphertext;
 wire [128*d-1:0] shblk_dout;
+wire [128*d-1:0] shblk_kin;
 
 // Sharing key
 MSKcst #(.d(d),.count(128))
@@ -92,7 +93,7 @@ always@(*) #Td clk<=~clk;
         .sh_plaintext(sh_plaintext),
         .sh_key(sh_key),
         .sh_ciphertext(sh_ciphertext),
-        .prng_seed(80'b0),
+        .prng_seed(80'hD609C0895E8112153524),
         .prng_start_reseed(prng_start_reseed),
         .prng_out_ready(1'b1),
         .prng_out_valid(prng_out_valid)
@@ -103,6 +104,12 @@ shbit2shblk #(.d(d),.width(128))
 switch_encoding_dout(
     .shbit(sh_ciphertext),
     .shblk(shblk_dout)
+);
+
+shbit2shblk #(.d(d),.width(128))
+switch_encoding_kin(
+    .shbit(sh_key),
+    .shblk(shblk_kin)
 );
 
 

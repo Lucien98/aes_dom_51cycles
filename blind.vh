@@ -5,3 +5,4 @@ else if (d==2) _blind_nrnd = d-1;
 else _blind_nrnd = d;
 end
 endfunction
+`define RAND_OPT

@@ -147,23 +147,23 @@ sh_zero_mod(
 //// Input mux
 wire fetch_in = ready & valid_in;
 
-wire [128*d-1:0] sh_state_tmp;
-MSKmux #(.d(d),.count(128))
-mux_state_in(
-    .sel(fetch_in),
-    .in_true(sh_plaintext),
-    .in_false(sh_key),
-    .out(sh_state_tmp)
-);
+// wire [128*d-1:0] sh_state_tmp;
+// MSKmux #(.d(d),.count(128))
+// mux_state_in(
+//     .sel(fetch_in),
+//     .in_true(sh_plaintext),
+//     .in_false(sh_zero), // sh_key
+//     .out(sh_state_tmp)
+// );
 
-wire [128*d-1:0] sh_key_tmp;
-MSKmux #(.d(d),.count(128))
-mux_key_in(
-    .sel(fetch_in),
-    .in_true(sh_key),
-    .in_false(sh_plaintext),
-    .out(sh_key_tmp)
-);
+// wire [128*d-1:0] sh_key_tmp;
+// MSKmux #(.d(d),.count(128))
+// mux_key_in(
+//     .sel(fetch_in),
+//     .in_true(sh_key),
+//     .in_false(sh_zero), // sh_plaintext
+//     .out(sh_key_tmp)
+// );
 
 wire [128*d-1:0] sh_feedback_state_choice;
 MSKmux #(.d(d),.count(128))
@@ -174,21 +174,26 @@ mux_feedback_choice(
     .out(sh_feedback_state_choice)
 );
 
-MSKmux #(.d(d),.count(128))
-mux_feedback_state(
-    .sel(feedback_valid),
-    .in_true(sh_feedback_state_choice),
-    .in_false(sh_state_tmp),
-    .out(to_sh_state)
-);
+// MSKmux #(.d(d),.count(128))
+// mux_feedback_state(
+//     .sel(feedback_valid),
+//     .in_true(sh_feedback_state_choice),
+//     .in_false(sh_state_tmp),
+//     .out(to_sh_state)
+// );
 
-MSKmux #(.d(d),.count(128))
-mux_feedback_key(
-    .sel(feedback_valid),
-    .in_true(round_sh_key_out),
-    .in_false(sh_key_tmp),
-    .out(to_sh_key)
-);
+assign to_sh_state = feedback_valid ? sh_feedback_state_choice : (fetch_in ? sh_plaintext : sh_feedback_state_choice);//sh_key_tmp;
+
+
+// MSKmux #(.d(d),.count(128))
+// mux_feedback_key(
+//     .sel(feedback_valid),
+//     .in_true(round_sh_key_out),
+//     .in_false(sh_key_tmp /*round_sh_key_out*/),
+//     .out(to_sh_key)
+// );
+
+assign to_sh_key = feedback_valid ? round_sh_key_out : (fetch_in ? sh_key : round_sh_key_out);//sh_key_tmp;
 
 // Rcon input mux
 wire fetch_feedback_RCON = feedback_valid & (~feedback_finish);
@@ -212,7 +217,7 @@ MSKmux #(.d(d),.count(128))
 mux_ciphervalid(
     .sel(cipher_valid),
     .in_true(round_sh_state_AK_out),
-    .in_false(round_sh_state_AK_out),
+    .in_false(sh_zero),//round_sh_state_AK_out
     .out(sh_ciphertext)
 );
 
