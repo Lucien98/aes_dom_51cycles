@@ -10,7 +10,7 @@ module tb_mskaes
 ();
 
 `ifndef LATENCY
-`define LATENCY 5
+`define LATENCY 4
 `endif 
 
 localparam LATENCY = `LATENCY;
@@ -106,11 +106,11 @@ switch_encoding_dout(
     .shblk(shblk_dout)
 );
 
-shbit2shblk #(.d(d),.width(128))
-switch_encoding_kin(
-    .shbit(sh_key),
-    .shblk(shblk_kin)
-);
+// shbit2shblk #(.d(d),.width(128))
+// switch_encoding_dout(
+//     .shbit(sh_key),
+//     .shblk(shblk_kin)
+// );
 
 
 

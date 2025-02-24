@@ -2,14 +2,14 @@
 `define DEFAULTSHARES 2
 `endif
 `ifndef DEFAULTLATENCY
-`define DEFAULTLATENCY 5
+`define DEFAULTLATENCY 4
 `endif
 
 module MSKaes_128bits_round_based
 #
 (
     parameter d=`DEFAULTSHARES,
-    parameter LATENCY = 5//`DEFAULTLATENCY
+    parameter LATENCY = 4//`DEFAULTLATENCY
 )
 (
     // Global
@@ -97,7 +97,7 @@ round_logic(
     .sh_state_out(round_sh_state_out),
     .sh_key_out(round_sh_key_out),
     .sh_state_SR_out(round_sh_state_SR_out),
-    .sh_state_AK_out(round_sh_state_AK_out),
+    // .sh_state_AK_out(round_sh_state_AK_out),
     .rnd_bus0w(rnd_bus0w),
     .rnd_bus1w(rnd_bus1w),
     .rnd_bus2w(rnd_bus2w),
@@ -115,19 +115,64 @@ wire [128*d-1:0] to_sh_state, to_sh_key;
 wire [8*d-1:0] to_RCON;
 reg [7:0] from_RCON;
 
+wire [128*d-1:0] statereg_in;
+MSKmux #(.d(d), .count(128))
+mux_statereg_in(
+    .sel(feedback_finish),
+    .in_true(sh_postAK),
+    .in_false(sh_postAK_cleaned),
+    .out(statereg_in)
+);
+
 MSKreg #(.d(d),.count(128))
 inreg_state(
     .clk(clk),
-    .in(to_sh_state),
+    .in(statereg_in/*to_sh_state*/),
     .out(round_sh_state_in)
 );
 
 MSKreg #(.d(d),.count(128))
 inreg_key(
     .clk(clk),
-    .in(to_sh_key),
+    .in(/*to_sh_key*/ sh_key_postLM),
     .out(round_sh_key_in)
 );
+
+wire [128*d-1:0] sh_key_postLM; 
+assign sh_key_postLM[0 +: 12*8*d] = to_sh_key[0 +: 12*8*d];
+
+MSKlin_map #(.d(d), .count(4))
+lin_map_key(
+    .sh_state_in(to_sh_key[12*8*d +: 4*8*d]),
+    .sh_state_out(sh_key_postLM[12*8*d +: 4*8*d])
+    );
+
+// AK
+wire [128*d-1:0] sh_postAK; 
+MSKaes_128bits_AK #(.d(d))
+AKmod(
+    .sh_state_in(to_sh_state),
+    .sh_key_in(to_sh_key),
+    .sh_state_out(sh_postAK)
+);
+
+wire [128*d-1:0] sh_postLM;
+MSKlin_map #(.d(d), .count(16))
+lin_map(
+    .sh_state_in(sh_postAK),
+    .sh_state_out(sh_postLM)
+    );
+
+// SB 
+wire [128*d-1:0] sh_postAK_cleaned;
+MSKmux #(.d(d), .count(128))
+mux_clean_sbox(
+    .sel(round_cleaning_on),
+    .in_true(sh_zero),
+    .in_false(sh_postLM),
+    .out(sh_postAK_cleaned)
+);
+
 
 always@(posedge clk)
 if (~nrst) begin
@@ -182,7 +227,7 @@ mux_feedback_choice(
 //     .out(to_sh_state)
 // );
 
-assign to_sh_state = feedback_valid ? sh_feedback_state_choice : (fetch_in ? sh_plaintext : sh_feedback_state_choice);//sh_key_tmp;
+assign to_sh_state = feedback_valid ? sh_feedback_state_choice : (fetch_in ? sh_plaintext : sh_feedback_state_choice);//;sh_feedback_state_choice
 
 
 // MSKmux #(.d(d),.count(128))
@@ -205,18 +250,18 @@ assign ctrl_RCON_in = from_RCON;
 reg reg_cipher_valid;
 always@(posedge clk)
 if(~nrst) begin
-    reg_cipher_valid <= 0;
+    reg_cipher_valid = 0;
 end else begin
-    reg_cipher_valid <= feedback_finish;
+    reg_cipher_valid = feedback_finish;
 end
-assign cipher_valid = reg_cipher_valid;
+assign cipher_valid = reg_cipher_valid;//feedback_finish;
 
-assign round_cleaning_on = cipher_valid;
+assign round_cleaning_on = reg_cipher_valid;
 
 MSKmux #(.d(d),.count(128))
 mux_ciphervalid(
     .sel(cipher_valid),
-    .in_true(round_sh_state_AK_out),
+    .in_true(round_sh_state_in/*round_sh_state_AK_out*/),
     .in_false(sh_zero),//round_sh_state_AK_out
     .out(sh_ciphertext)
 );
