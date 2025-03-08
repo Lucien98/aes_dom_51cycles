@@ -15,9 +15,7 @@ module MSKaes_128bits_SB
     rnd_bus0w,
     rnd_bus1w,
     rnd_bus2w
-`ifdef CANRIGHT_SBOX
     ,rnd_bus3w
-`endif
 );
 
 `include "design.vh"
@@ -32,9 +30,7 @@ output [128*d-1:0] sh_state_out;
 input [16*rnd_bus0-1:0] rnd_bus0w;
 input [16*rnd_bus1-1:0] rnd_bus1w;
 input [16*rnd_bus2-1:0] rnd_bus2w;
-`ifdef CANRIGHT_SBOX
 input [16*rnd_bus3-1:0] rnd_bus3w;
-`endif
 
 // Byte matrix representation
 wire [8*d-1:0] sh_byte_in [15:0];

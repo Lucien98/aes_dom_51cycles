@@ -57,9 +57,7 @@ always@(*) #Td clk<=~clk;
 //     reg [20*rnd_bus0-1:0] rnd_bus0w;
 //     reg [20*rnd_bus1-1:0] rnd_bus1w;
 //     reg [20*rnd_bus2-1:0] rnd_bus2w;
-//         `ifdef CANRIGHT_SBOX
 //         reg [20*rnd_bus3-1:0] rnd_bus3w;
-//         `endif
 
 //     MSKaes_128bits_round_based 
 //         `ifndef FULLVERIF
@@ -77,9 +75,7 @@ always@(*) #Td clk<=~clk;
 //         .rnd_bus0w(rnd_bus0w),
 //         .rnd_bus1w(rnd_bus1w),
 //         .rnd_bus2w(rnd_bus2w)
-//         `ifdef CANRIGHT_SBOX 
 //             ,.rnd_bus3w(rnd_bus3w)
-//         `endif
 //     );
 //     assign prng_out_valid = 1'b1;
 // `else
@@ -135,11 +131,9 @@ end
 for (i=0;i<20*rnd_bus2;i=i+1) begin: rnd_b_b3
     always@(posedge clk) rnd_bus2w[i] <= $random(seed);
 end
-`ifdef CANRIGHT_SBOX
 for (i=0;i<20*rnd_bus3;i=i+1) begin: rnd_b_b4
     always@(posedge clk) rnd_bus3w[i] <= $random(seed);
 end
-`endif
 endgenerate
 `endif
 
@@ -178,9 +172,7 @@ initial begin
     rnd_bus0w = 0;
     rnd_bus1w = 0;
     rnd_bus2w = 0;
-    `ifdef CANRIGHT_SBOX
     rnd_bus3w = 0;
-    `endif
     `endif
 
     prng_start_reseed = 0;
