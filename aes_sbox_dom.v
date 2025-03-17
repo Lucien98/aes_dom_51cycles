@@ -30,11 +30,7 @@ module aes_sbox_dom
     wire [d*(d-1)-1 : 0] _Zinv1xDI; // for inverter
     wire [d*(d-1)-1 : 0] _Zinv2xDI;
     wire [d*(d-1)-1 : 0] _Zinv3xDI;
-    wire [2*blind_n_rnd-1 : 0] _Binv1xDI; // for inverter
-    wire [2*blind_n_rnd-1 : 0] _Binv2xDI; // ...
-`ifndef RAND_OPT
-    wire [2*blind_n_rnd-1 : 0] _Binv3xDI; // ...
-`endif
+    wire [(2+bcoeff)*blind_n_rnd-1 : 0] _BxDI; // for inverter
     wire [8*d-1 : 0] _QxDO;
 
     genvar j;
@@ -60,16 +56,11 @@ module aes_sbox_dom
     assign _Zinv3xDI = rnd_bus2w[d*(d-1) +: d*(d-1)];
 
 
-    assign _Binv1xDI = rnd_bus1w[d*(d-1) +: 2*blind_n_rnd];
-    assign _Binv2xDI = rnd_bus2w[2*d*(d-1) +: blind_n_rnd*2];
-`ifndef RAND_OPT
-    assign _Binv3xDI = rnd_bus2w[2*(d*(d-1) + blind_n_rnd) +: blind_n_rnd*2];
-`endif
+    assign _BxDI = rnd_bus2w[2*d*(d-1) +: (2+bcoeff)*blind_n_rnd];
 
-    aes_sbox #(.PIPELINED(1), .EIGHT_STAGED(0), .SHARES(d))
+    aes_sbox #(.PIPELINED(1), .SHARES(d))
     inst_aes_box (
         .ClkxCI(clk),
-        // .RstxBI(1'b1),
         ._XxDI(_XxDI),
         ._Zmul1xDI(_Zmul1xDI),
         ._Zmul2xDI(_Zmul2xDI),
@@ -77,12 +68,7 @@ module aes_sbox_dom
         ._Zinv1xDI(_Zinv1xDI),
         ._Zinv2xDI(_Zinv2xDI),
         ._Zinv3xDI(_Zinv3xDI),
-        // ._Bmul1xDI(_Bmul1xDI),
-        ._Binv1xDI(_Binv1xDI),
-        ._Binv2xDI(_Binv2xDI),
-`ifndef RAND_OPT
-        ._Binv3xDI(_Binv3xDI),
-`endif
+        ._BxDI(_BxDI),
         ._QxDO(_QxDO)
     );
 endmodule
