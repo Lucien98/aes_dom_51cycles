@@ -106,7 +106,7 @@ assign ready = ~feedback_valid;
     
 ////// Input stage             
 wire [128*d-1:0] to_sh_state, to_sh_key;
-wire [8*d-1:0] to_RCON;
+wire [7:0] to_RCON;
 reg [7:0] from_RCON;
 
 wire [128*d-1:0] statereg_in;
