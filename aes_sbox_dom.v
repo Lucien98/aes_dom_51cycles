@@ -41,12 +41,14 @@ module aes_sbox_dom
             assign sboxOut[j*d+i] = _QxDO[i*8+j];
         end
     end
+
+/*
     wire [7:0] out;
     assign out = _QxDO[15:8] ^ _QxDO[7:0];
 
     wire [7:0] in;
     assign in = _XxDI[15:8] ^ _XxDI[7:0];
-
+*/
     assign _Zmul1xDI = rnd_bus0w[0 +: 2*d*(d-1)];
     assign _Zmul2xDI = rnd_bus3w[0 +: 2*d*(d-1)];
     assign _Zmul3xDI = rnd_bus3w[2*d*(d-1) +: 2*d*(d-1)];

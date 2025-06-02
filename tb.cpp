@@ -4,7 +4,6 @@
 #include <iomanip>
 #include <cstdint>
 #include <cassert>
-
 vluint64_t main_time = 0;
 double sc_time_stamp() { return main_time; }
 
@@ -49,7 +48,11 @@ int main(int argc, char** argv) {
     Verilated::commandArgs(argc, argv);
     Vwrapper_aes128* dut = new Vwrapper_aes128;
 
+#ifdef SHARES
+    const int d = SHARES; 
+#else
     const int d = 3; // 可变参数，但注意要与 verilator -DDEFAULTSHARES=2 保持一致
+#endif
     const int wide_words = (128 * d + 31) / 32;
 
     uint64_t plaintext_low = 0x0000000000000000ULL;
